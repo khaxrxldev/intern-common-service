@@ -8,6 +8,8 @@ import com.intern.common.service.dto.CompanyRequest;
 import com.intern.common.service.dto.CompanyResponse;
 import com.intern.common.service.dto.QuestionRequest;
 import com.intern.common.service.dto.QuestionResponse;
+import com.intern.common.service.dto.SemesterRequest;
+import com.intern.common.service.dto.SemesterResponse;
 
 public interface CommonService {
 
@@ -32,4 +34,18 @@ public interface CommonService {
 	QuestionResponse updateQuestion(QuestionRequest questionRequest) throws Exception;
 	
 	Boolean deleteQuestionByQuestionId(String questionId);
+	
+	List<SemesterResponse> getSemesters();
+	
+	List<SemesterResponse> filterSemesters(SemesterRequest semesterRequest);
+	
+	SemesterResponse getSemesterBySemesterId(String semesterId);
+	
+	SemesterResponse insertSemester(SemesterRequest semesterRequest) throws Exception;
+	
+	SemesterResponse updateSemester(SemesterRequest semesterRequest) throws Exception;
+	
+	List<SemesterResponse> updateSemesterStatusList(List<SemesterRequest> semesterRequests) throws Exception;
+	
+	Boolean deleteSemesterBySemesterId(String semesterId);
 }

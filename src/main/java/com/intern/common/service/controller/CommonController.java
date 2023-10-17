@@ -26,6 +26,8 @@ import com.intern.common.service.dto.CompanyResponse;
 import com.intern.common.service.dto.QuestionRequest;
 import com.intern.common.service.dto.QuestionResponse;
 import com.intern.common.service.dto.Response;
+import com.intern.common.service.dto.SemesterRequest;
+import com.intern.common.service.dto.SemesterResponse;
 import com.intern.common.service.service.CommonService;
 import com.intern.common.service.utility.BaseUtility;
 
@@ -320,6 +322,189 @@ public class CommonController {
 			Boolean deleteQuestionStatus = commonService.deleteQuestionByQuestionId(questionId);
 			
 			if (deleteQuestionStatus) {
+				message_status = true;
+				message_desc = "SUCCESS";
+			} else {
+				error_desc = "FAIL";
+			}
+		} else {
+			http_status = HttpStatus.BAD_REQUEST;
+			error_desc = "FAIL";
+		}
+		
+		return returnResponse(null, http_status, error_desc, message_status, message_desc, message_code, message_dev, object_map);
+	}
+
+	@GetMapping("/semesters")
+	public ResponseEntity<Response> getSemesters() {
+		HttpStatus http_status = HttpStatus.OK;
+		String error_desc = null;
+		Boolean message_status = false;
+		String message_desc = null;
+		String message_code = null;
+		String message_dev = null;
+		Map<Object, Object> object_map = new HashMap<Object, Object>();
+		
+		List<SemesterResponse> semesterResponses = commonService.getSemesters();
+
+		if (!BaseUtility.isListNull(semesterResponses)) {
+			message_status = true;
+			
+			object_map.put("semesters", semesterResponses);
+		} else {
+			message_status = false;
+			message_desc = "NULL";
+		}
+		
+		return returnResponse(null, http_status, error_desc, message_status, message_desc, message_code, message_dev, object_map);
+	}
+	
+	@PostMapping("semesters/filter")
+	public ResponseEntity<Response> filterSemesters(@RequestPart("semesterRequest") SemesterRequest semesterRequest) throws Exception {
+		HttpStatus http_status = HttpStatus.OK;
+		String error_desc = null;
+		Boolean message_status = false;
+		String message_desc = null;
+		String message_code = null;
+		String message_dev = null;
+		Map<Object, Object> object_map = new HashMap<Object, Object>();
+
+		List<SemesterResponse> semesterResponses = commonService.filterSemesters(semesterRequest);
+		object_map.put("semesters", semesterResponses);
+		
+		return returnResponse(null, http_status, error_desc, message_status, message_desc, message_code, message_dev, object_map);
+	}
+	
+	@GetMapping("/semester/{semesterId}")
+	public ResponseEntity<Response> getSemesterBySemesterId(@PathVariable("semesterId") String semesterId)  {
+		HttpStatus http_status = HttpStatus.OK;
+		String error_desc = null;
+		Boolean message_status = false;
+		String message_desc = null;
+		String message_code = null;
+		String message_dev = null;
+		Map<Object, Object> object_map = new HashMap<Object, Object>();
+		
+		if (BaseUtility.isNotBlank(semesterId)) {
+			SemesterResponse semesterResponse = commonService.getSemesterBySemesterId(semesterId);
+			
+			if (BaseUtility.isObjectNotNull(semesterResponse)) {
+				message_status = true;
+				message_desc = "SUCCESS";
+				
+				object_map.put("semester", semesterResponse);
+			} else {
+				error_desc = "FAIL";
+			}
+		} else {
+			http_status = HttpStatus.BAD_REQUEST;
+			error_desc = "FAIL";
+		}
+		
+		return returnResponse(null, http_status, error_desc, message_status, message_desc, message_code, message_dev, object_map);
+	}
+	
+	@PostMapping("/semester")
+	public ResponseEntity<Response> insertSemester(@RequestPart("semesterRequest") SemesterRequest semesterRequest) throws Exception {
+		HttpStatus http_status = HttpStatus.OK;
+		String error_desc = null;
+		Boolean message_status = false;
+		String message_desc = null;
+		String message_code = null;
+		String message_dev = null;
+		Map<Object, Object> object_map = new HashMap<Object, Object>();
+
+		if (BaseUtility.isObjectNotNull(semesterRequest)) {
+			SemesterResponse semesterResponse = commonService.insertSemester(semesterRequest);
+			
+			if (BaseUtility.isObjectNotNull(semesterResponse)) {
+				message_status = true;
+				message_desc = "SUCCESS";
+				
+				object_map.put("semester", semesterResponse);
+			} else {
+				error_desc = "FAIL";
+			}
+		} else {
+			http_status = HttpStatus.BAD_REQUEST;
+			error_desc = "FAIL";
+		}
+		
+		return returnResponse(null, http_status, error_desc, message_status, message_desc, message_code, message_dev, object_map);
+	}
+	
+	@PutMapping("/semester")
+	public ResponseEntity<Response> updateSemester(@RequestPart("semesterRequest") SemesterRequest semesterRequest) throws Exception {
+		HttpStatus http_status = HttpStatus.OK;
+		String error_desc = null;
+		Boolean message_status = false;
+		String message_desc = null;
+		String message_code = null;
+		String message_dev = null;
+		Map<Object, Object> object_map = new HashMap<Object, Object>();
+
+		if (BaseUtility.isObjectNotNull(semesterRequest)) {
+			SemesterResponse semesterResponse = commonService.updateSemester(semesterRequest);
+			
+			if (BaseUtility.isObjectNotNull(semesterResponse)) {
+				message_status = true;
+				message_desc = "SUCCESS";
+				
+				object_map.put("semester", semesterResponse);
+			} else {
+				error_desc = "FAIL";
+			}
+		} else {
+			http_status = HttpStatus.BAD_REQUEST;
+			error_desc = "FAIL";
+		}
+		
+		return returnResponse(null, http_status, error_desc, message_status, message_desc, message_code, message_dev, object_map);
+	}
+	
+	@PutMapping("/semesters")
+	public ResponseEntity<Response> updateSemesterStatusList(@RequestPart("semesterRequests") List<SemesterRequest> semesterRequests) throws Exception {
+		HttpStatus http_status = HttpStatus.OK;
+		String error_desc = null;
+		Boolean message_status = false;
+		String message_desc = null;
+		String message_code = null;
+		String message_dev = null;
+		Map<Object, Object> object_map = new HashMap<Object, Object>();
+		
+		if (!BaseUtility.isListNull(semesterRequests)) {
+			List<SemesterResponse> semesterResponses = commonService.updateSemesterStatusList(semesterRequests);
+			
+			if (!BaseUtility.isListNull(semesterResponses)) {
+				message_status = true;
+				message_desc = "SUCCESS";
+				
+				object_map.put("semesters", semesterResponses);
+			} else {
+				error_desc = "FAIL";
+			}
+		} else {
+			http_status = HttpStatus.BAD_REQUEST;
+			error_desc = "FAIL";
+		}
+		
+		return returnResponse(null, http_status, error_desc, message_status, message_desc, message_code, message_dev, object_map);
+	}
+	
+	@DeleteMapping("/semester/{semesterId}")
+	public ResponseEntity<Response> deleteSemesterBySemesterId(@PathVariable("semesterId") String semesterId) {
+		HttpStatus http_status = HttpStatus.OK;
+		String error_desc = null;
+		Boolean message_status = false;
+		String message_desc = null;
+		String message_code = null;
+		String message_dev = null;
+		Map<Object, Object> object_map = new HashMap<Object, Object>();
+
+		if (BaseUtility.isNotBlank(semesterId)) {
+			Boolean deleteSemesterStatus = commonService.deleteSemesterBySemesterId(semesterId);
+			
+			if (deleteSemesterStatus) {
 				message_status = true;
 				message_desc = "SUCCESS";
 			} else {

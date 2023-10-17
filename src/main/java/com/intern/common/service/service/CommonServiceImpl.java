@@ -11,13 +11,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.intern.common.service.dao.CompanyRepository;
 import com.intern.common.service.dao.QuestionRepository;
+import com.intern.common.service.dao.SemesterRepository;
 import com.intern.common.service.dto.CompanyRequest;
 import com.intern.common.service.dto.CompanyResponse;
 import com.intern.common.service.dto.QuestionRequest;
 import com.intern.common.service.dto.QuestionResponse;
+import com.intern.common.service.dto.SemesterRequest;
+import com.intern.common.service.dto.SemesterResponse;
 import com.intern.common.service.entity.CompanyEntity;
 import com.intern.common.service.entity.QuestionEntity;
+import com.intern.common.service.entity.SemesterEntity;
 import com.intern.common.service.utility.BaseUtility;
+import com.intern.common.service.utility.DateUtility;
 
 @Service
 public class CommonServiceImpl implements CommonService {
@@ -27,6 +32,9 @@ public class CommonServiceImpl implements CommonService {
 	
 	@Autowired
 	QuestionRepository questionRepository;
+	
+	@Autowired
+	SemesterRepository semesterRepository;
 	
 	@Override
 	public List<CompanyResponse> getCompanies() {
@@ -332,6 +340,202 @@ public class CommonServiceImpl implements CommonService {
 		}
 		
 		if (totalQuestionDeleted > 0) {
+			return true;
+		}
+		
+		return false;
+	}
+
+	@Override
+	public List<SemesterResponse> getSemesters() {
+		List<SemesterResponse> semesterResponses = new ArrayList<SemesterResponse>();
+		List<SemesterEntity> semesterEntities = semesterRepository.findAll();
+		
+		for (SemesterEntity semesterEntity : semesterEntities) {
+			SemesterResponse semesterResponse = new SemesterResponse();
+
+			semesterResponse.setSemesterId(semesterEntity.getSemesterId());
+			semesterResponse.setSemesterCode(semesterEntity.getSemesterCode());
+			semesterResponse.setSemesterPart(semesterEntity.getSemesterPart());
+			semesterResponse.setSemesterStatus(semesterEntity.getSemesterStatus());
+//			semesterResponse.setSemesterStartDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterStartDate()));
+//			semesterResponse.setSemesterEndDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterEndDate()));
+			semesterResponse.setSemesterStartEvaluateDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterStartEvaluateDate()));
+			semesterResponse.setSemesterEndEvaluateDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterEndEvaluateDate()));
+			
+			semesterResponses.add(semesterResponse);
+		}
+		
+		return semesterResponses;
+	}
+
+	@Override
+	public List<SemesterResponse> filterSemesters(SemesterRequest semesterRequest) {
+		List<SemesterResponse> semesterResponses = new ArrayList<SemesterResponse>();
+		List<SemesterEntity> semesterEntities = semesterRepository.findAll();
+
+		for (SemesterEntity semesterEntity : semesterEntities) {
+			SemesterResponse semesterResponse = new SemesterResponse();
+
+			semesterResponse.setSemesterId(semesterEntity.getSemesterId());
+			semesterResponse.setSemesterCode(semesterEntity.getSemesterCode());
+			semesterResponse.setSemesterPart(semesterEntity.getSemesterPart());
+			semesterResponse.setSemesterStatus(semesterEntity.getSemesterStatus());
+//			semesterResponse.setSemesterStartDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterStartDate()));
+//			semesterResponse.setSemesterEndDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterEndDate()));
+			semesterResponse.setSemesterStartEvaluateDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterStartEvaluateDate()));
+			semesterResponse.setSemesterEndEvaluateDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterEndEvaluateDate()));
+			
+			Boolean addRow = true;
+			
+			if (BaseUtility.isNotBlank(semesterRequest.getSemesterPart()) && !semesterRequest.getSemesterPart().equals(semesterEntity.getSemesterPart())) {
+				addRow = false;
+			}
+			if (BaseUtility.isNotBlank(semesterRequest.getSemesterStatus()) && !semesterRequest.getSemesterStatus().equals(semesterEntity.getSemesterStatus())) {
+				addRow = false;
+			}
+			
+			if (addRow) {
+				semesterResponses.add(semesterResponse);
+			}
+		}
+		
+		return semesterResponses;
+	}
+
+	@Override
+	public SemesterResponse getSemesterBySemesterId(String semesterId) {
+		SemesterResponse semesterResponse = new SemesterResponse();
+		SemesterEntity semesterEntity = semesterRepository.findBySemesterId(semesterId);
+		
+		if (BaseUtility.isObjectNotNull(semesterEntity)) {
+			semesterResponse.setSemesterId(semesterEntity.getSemesterId());
+			semesterResponse.setSemesterCode(semesterEntity.getSemesterCode());
+			semesterResponse.setSemesterPart(semesterEntity.getSemesterPart());
+			semesterResponse.setSemesterStatus(semesterEntity.getSemesterStatus());
+//			semesterResponse.setSemesterStartDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterStartDate()));
+//			semesterResponse.setSemesterEndDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterEndDate()));
+			semesterResponse.setSemesterStartEvaluateDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterStartEvaluateDate()));
+			semesterResponse.setSemesterEndEvaluateDate(DateUtility.convertToLocalDateTime(semesterEntity.getSemesterEndEvaluateDate()));
+			
+			return semesterResponse;
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public SemesterResponse insertSemester(SemesterRequest semesterRequest) throws Exception {
+		SemesterResponse semesterResponse = new SemesterResponse();
+		SemesterEntity newSemesterEntity = new SemesterEntity();
+		
+		newSemesterEntity.setSemesterId(BaseUtility.generateId());
+		newSemesterEntity.setSemesterCode(semesterRequest.getSemesterCode());
+		newSemesterEntity.setSemesterPart(semesterRequest.getSemesterPart());
+		newSemesterEntity.setSemesterStatus("IAC");
+//		newSemesterEntity.setSemesterStartDate(DateUtility.asTimeStamp(semesterRequest.getSemesterStartDate()));
+//		newSemesterEntity.setSemesterEndDate(DateUtility.asTimeStamp(semesterRequest.getSemesterEndDate()));
+		newSemesterEntity.setSemesterStartEvaluateDate(DateUtility.asTimeStamp(semesterRequest.getSemesterStartEvaluateDate()));
+		newSemesterEntity.setSemesterEndEvaluateDate(DateUtility.asTimeStamp(semesterRequest.getSemesterEndEvaluateDate()));
+		
+		SemesterEntity insertedSemesterEntity = semesterRepository.save(newSemesterEntity);
+		
+		if (BaseUtility.isObjectNotNull(insertedSemesterEntity)) {
+			semesterResponse.setSemesterId(insertedSemesterEntity.getSemesterId());
+			semesterResponse.setSemesterCode(insertedSemesterEntity.getSemesterCode());
+			semesterResponse.setSemesterPart(insertedSemesterEntity.getSemesterPart());
+			semesterResponse.setSemesterStatus(insertedSemesterEntity.getSemesterStatus());
+//			semesterResponse.setSemesterStartDate(DateUtility.convertToLocalDateTime(insertedSemesterEntity.getSemesterStartDate()));
+//			semesterResponse.setSemesterEndDate(DateUtility.convertToLocalDateTime(insertedSemesterEntity.getSemesterEndDate()));
+			semesterResponse.setSemesterStartEvaluateDate(DateUtility.convertToLocalDateTime(insertedSemesterEntity.getSemesterStartEvaluateDate()));
+			semesterResponse.setSemesterEndEvaluateDate(DateUtility.convertToLocalDateTime(insertedSemesterEntity.getSemesterEndEvaluateDate()));
+		} else {
+			throw new Exception();
+		}
+		
+		return semesterResponse;
+	}
+
+	@Override
+	public SemesterResponse updateSemester(SemesterRequest semesterRequest) throws Exception {
+		SemesterResponse semesterResponse = new SemesterResponse();
+		SemesterEntity existedSemesterEntity = semesterRepository.findBySemesterId(semesterRequest.getSemesterId());
+		
+		if (BaseUtility.isObjectNotNull(existedSemesterEntity)) {
+			existedSemesterEntity.setSemesterCode(semesterRequest.getSemesterCode());
+			existedSemesterEntity.setSemesterPart(semesterRequest.getSemesterPart());
+//			existedSemesterEntity.setSemesterStatus(semesterRequest.getSemesterStatus());
+//			existedSemesterEntity.setSemesterStartDate(DateUtility.asTimeStamp(semesterRequest.getSemesterStartDate()));
+//			existedSemesterEntity.setSemesterEndDate(DateUtility.asTimeStamp(semesterRequest.getSemesterEndDate()));
+			existedSemesterEntity.setSemesterStartEvaluateDate(DateUtility.asTimeStamp(semesterRequest.getSemesterStartEvaluateDate()));
+			existedSemesterEntity.setSemesterEndEvaluateDate(DateUtility.asTimeStamp(semesterRequest.getSemesterEndEvaluateDate()));
+			
+			SemesterEntity updatedSemesterEntity = semesterRepository.save(existedSemesterEntity);
+			
+			if (BaseUtility.isObjectNotNull(updatedSemesterEntity)) {
+				semesterResponse.setSemesterId(updatedSemesterEntity.getSemesterId());
+				semesterResponse.setSemesterCode(updatedSemesterEntity.getSemesterCode());
+				semesterResponse.setSemesterPart(updatedSemesterEntity.getSemesterPart());
+				semesterResponse.setSemesterStatus(updatedSemesterEntity.getSemesterStatus());
+//				semesterResponse.setSemesterStartDate(DateUtility.convertToLocalDateTime(updatedSemesterEntity.getSemesterStartDate()));
+//				semesterResponse.setSemesterEndDate(DateUtility.convertToLocalDateTime(updatedSemesterEntity.getSemesterEndDate()));
+				semesterResponse.setSemesterStartEvaluateDate(DateUtility.convertToLocalDateTime(updatedSemesterEntity.getSemesterStartEvaluateDate()));
+				semesterResponse.setSemesterEndEvaluateDate(DateUtility.convertToLocalDateTime(updatedSemesterEntity.getSemesterEndEvaluateDate()));
+			} else {
+				throw new Exception();
+			}
+			
+			return semesterResponse;
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public List<SemesterResponse> updateSemesterStatusList(List<SemesterRequest> semesterRequests) throws Exception {
+		List<SemesterResponse> semesterResponses = new ArrayList<SemesterResponse>();
+		
+		for (SemesterRequest semesterRequest : semesterRequests) {
+			SemesterEntity existedSemesterEntity = semesterRepository.findBySemesterId(semesterRequest.getSemesterId());
+			
+			if (BaseUtility.isObjectNotNull(existedSemesterEntity)) {
+				existedSemesterEntity.setSemesterStatus(semesterRequest.getSemesterStatus());
+				
+				SemesterEntity updatedSemesterEntity = semesterRepository.save(existedSemesterEntity);
+				
+				if (BaseUtility.isObjectNotNull(updatedSemesterEntity)) {
+					SemesterResponse semesterResponse = new SemesterResponse();
+					
+					semesterResponse.setSemesterId(updatedSemesterEntity.getSemesterId());
+					semesterResponse.setSemesterCode(updatedSemesterEntity.getSemesterCode());
+					semesterResponse.setSemesterPart(updatedSemesterEntity.getSemesterPart());
+					semesterResponse.setSemesterStatus(updatedSemesterEntity.getSemesterStatus());
+//					semesterResponse.setSemesterStartDate(DateUtility.convertToLocalDateTime(updatedSemesterEntity.getSemesterStartDate()));
+//					semesterResponse.setSemesterEndDate(DateUtility.convertToLocalDateTime(updatedSemesterEntity.getSemesterEndDate()));
+					semesterResponse.setSemesterStartEvaluateDate(DateUtility.convertToLocalDateTime(updatedSemesterEntity.getSemesterStartEvaluateDate()));
+					semesterResponse.setSemesterEndEvaluateDate(DateUtility.convertToLocalDateTime(updatedSemesterEntity.getSemesterEndEvaluateDate()));
+					
+					semesterResponses.add(semesterResponse);
+				} else {
+					throw new Exception();
+				}
+			}
+		}
+		
+		return semesterResponses;
+	}
+
+	@Transactional
+	public Boolean deleteSemesterBySemesterId(String semesterId) {
+		Integer totalSemesterDeleted = 0;
+		
+		try {
+			totalSemesterDeleted = semesterRepository.deleteBySemesterId(semesterId);
+		} catch (Exception exception) {
+			System.out.println(exception.getMessage());
+		}
+		
+		if (totalSemesterDeleted > 0) {
 			return true;
 		}
 		
