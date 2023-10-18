@@ -12,15 +12,18 @@ import org.springframework.web.multipart.MultipartFile;
 import com.intern.common.service.dao.CompanyRepository;
 import com.intern.common.service.dao.QuestionRepository;
 import com.intern.common.service.dao.SemesterRepository;
+import com.intern.common.service.dao.StudentSemesterRepository;
 import com.intern.common.service.dto.CompanyRequest;
 import com.intern.common.service.dto.CompanyResponse;
 import com.intern.common.service.dto.QuestionRequest;
 import com.intern.common.service.dto.QuestionResponse;
 import com.intern.common.service.dto.SemesterRequest;
 import com.intern.common.service.dto.SemesterResponse;
+import com.intern.common.service.dto.StudentSemesterResponse;
 import com.intern.common.service.entity.CompanyEntity;
 import com.intern.common.service.entity.QuestionEntity;
 import com.intern.common.service.entity.SemesterEntity;
+import com.intern.common.service.entity.StudentSemesterEntity;
 import com.intern.common.service.utility.BaseUtility;
 import com.intern.common.service.utility.DateUtility;
 
@@ -35,6 +38,9 @@ public class CommonServiceImpl implements CommonService {
 	
 	@Autowired
 	SemesterRepository semesterRepository;
+	
+	@Autowired
+	StudentSemesterRepository studentSemesterRepository;
 	
 	@Override
 	public List<CompanyResponse> getCompanies() {
@@ -432,7 +438,7 @@ public class CommonServiceImpl implements CommonService {
 		newSemesterEntity.setSemesterId(BaseUtility.generateId());
 		newSemesterEntity.setSemesterCode(semesterRequest.getSemesterCode());
 		newSemesterEntity.setSemesterPart(semesterRequest.getSemesterPart());
-		newSemesterEntity.setSemesterStatus("IAC");
+		newSemesterEntity.setSemesterStatus("ACT");
 //		newSemesterEntity.setSemesterStartDate(DateUtility.asTimeStamp(semesterRequest.getSemesterStartDate()));
 //		newSemesterEntity.setSemesterEndDate(DateUtility.asTimeStamp(semesterRequest.getSemesterEndDate()));
 		newSemesterEntity.setSemesterStartEvaluateDate(DateUtility.asTimeStamp(semesterRequest.getSemesterStartEvaluateDate()));
@@ -530,7 +536,13 @@ public class CommonServiceImpl implements CommonService {
 		Integer totalSemesterDeleted = 0;
 		
 		try {
-			totalSemesterDeleted = semesterRepository.deleteBySemesterId(semesterId);
+			List<StudentSemesterEntity> existedStudentSemesterEntities = studentSemesterRepository.findBySemesterId(semesterId);
+			
+			if (existedStudentSemesterEntities.size() > 0) {
+				throw new Exception("Error! semester is being used.");
+			} else {
+				totalSemesterDeleted = semesterRepository.deleteBySemesterId(semesterId);
+			}
 		} catch (Exception exception) {
 			System.out.println(exception.getMessage());
 		}
@@ -540,5 +552,58 @@ public class CommonServiceImpl implements CommonService {
 		}
 		
 		return false;
+	}
+
+	@Override
+	public List<StudentSemesterResponse> insertStudentSemesters(List<String> semesterIdList, String studentMatricNum) {
+		List<StudentSemesterResponse> studentSemesterResponses = new ArrayList<StudentSemesterResponse>();
+		List<StudentSemesterEntity> existedStudentSemesterEntities = studentSemesterRepository.findByStudentMatricNum(studentMatricNum);
+		
+		for (int i = 0; i < semesterIdList.size(); i++) {
+			StudentSemesterEntity studentSemesterEntity = new StudentSemesterEntity();
+			
+			if (!BaseUtility.isListNull(existedStudentSemesterEntities)) {
+				studentSemesterEntity.setStudentSemesterId(existedStudentSemesterEntities.get(i).getStudentSemesterId());
+				studentSemesterEntity.setStudentMatricNum(existedStudentSemesterEntities.get(i).getStudentMatricNum());
+				studentSemesterEntity.setSemesterId(semesterIdList.get(i));
+			} else {
+				studentSemesterEntity.setStudentSemesterId(BaseUtility.generateId());
+				studentSemesterEntity.setStudentMatricNum(studentMatricNum);
+				studentSemesterEntity.setSemesterId(semesterIdList.get(i));
+			}
+
+			StudentSemesterEntity insertedStudentSemesterEntity = studentSemesterRepository.save(studentSemesterEntity);
+			
+			if (BaseUtility.isObjectNotNull(insertedStudentSemesterEntity)) {
+				StudentSemesterResponse studentSemesterResponse = new StudentSemesterResponse();
+				
+				studentSemesterResponse.setStudentSemesterId(insertedStudentSemesterEntity.getStudentSemesterId());
+				studentSemesterResponse.setStudentMatricNum(insertedStudentSemesterEntity.getStudentMatricNum());
+				studentSemesterResponse.setSemesterId(insertedStudentSemesterEntity.getSemesterId());
+				
+				if (BaseUtility.isNotBlank(insertedStudentSemesterEntity.getSemesterId())) {
+					SemesterEntity existedSemesterEntity = semesterRepository.findBySemesterId(insertedStudentSemesterEntity.getSemesterId());
+					
+					if (BaseUtility.isObjectNotNull(existedSemesterEntity)) {
+						SemesterResponse semesterResponse = new SemesterResponse();
+						
+						semesterResponse.setSemesterId(existedSemesterEntity.getSemesterId());
+						semesterResponse.setSemesterCode(existedSemesterEntity.getSemesterCode());
+						semesterResponse.setSemesterPart(existedSemesterEntity.getSemesterPart());
+						semesterResponse.setSemesterStatus(existedSemesterEntity.getSemesterStatus());
+//						semesterResponse.setSemesterStartDate(DateUtility.convertToLocalDateTime(existedSemesterEntity.getSemesterStartDate()));
+//						semesterResponse.setSemesterEndDate(DateUtility.convertToLocalDateTime(existedSemesterEntity.getSemesterEndDate()));
+						semesterResponse.setSemesterStartEvaluateDate(DateUtility.convertToLocalDateTime(existedSemesterEntity.getSemesterStartEvaluateDate()));
+						semesterResponse.setSemesterEndEvaluateDate(DateUtility.convertToLocalDateTime(existedSemesterEntity.getSemesterEndEvaluateDate()));
+						
+						studentSemesterResponse.setSemester(semesterResponse);
+					}
+				}
+				
+				studentSemesterResponses.add(studentSemesterResponse);
+			}
+		}
+
+		return studentSemesterResponses;
 	}
 }

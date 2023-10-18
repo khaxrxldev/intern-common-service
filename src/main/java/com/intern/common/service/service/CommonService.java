@@ -10,6 +10,7 @@ import com.intern.common.service.dto.QuestionRequest;
 import com.intern.common.service.dto.QuestionResponse;
 import com.intern.common.service.dto.SemesterRequest;
 import com.intern.common.service.dto.SemesterResponse;
+import com.intern.common.service.dto.StudentSemesterResponse;
 
 public interface CommonService {
 
@@ -48,4 +49,6 @@ public interface CommonService {
 	List<SemesterResponse> updateSemesterStatusList(List<SemesterRequest> semesterRequests) throws Exception;
 	
 	Boolean deleteSemesterBySemesterId(String semesterId);
+	
+	List<StudentSemesterResponse> insertStudentSemesters(List<String> semesterIdList, String studentMatricNum);
 }

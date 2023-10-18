@@ -28,6 +28,7 @@ import com.intern.common.service.dto.QuestionResponse;
 import com.intern.common.service.dto.Response;
 import com.intern.common.service.dto.SemesterRequest;
 import com.intern.common.service.dto.SemesterResponse;
+import com.intern.common.service.dto.StudentSemesterResponse;
 import com.intern.common.service.service.CommonService;
 import com.intern.common.service.utility.BaseUtility;
 
@@ -507,6 +508,35 @@ public class CommonController {
 			if (deleteSemesterStatus) {
 				message_status = true;
 				message_desc = "SUCCESS";
+			} else {
+				error_desc = "FAIL";
+			}
+		} else {
+			http_status = HttpStatus.BAD_REQUEST;
+			error_desc = "FAIL";
+		}
+		
+		return returnResponse(null, http_status, error_desc, message_status, message_desc, message_code, message_dev, object_map);
+	}
+	
+	@PostMapping("/students/semesters")
+	public ResponseEntity<Response> insertStudentSemesters(@RequestPart("semesterIdList") List<String> semesterIdList, @RequestPart("studentMatricNum") String studentMatricNum) throws Exception {
+		HttpStatus http_status = HttpStatus.OK;
+		String error_desc = null;
+		Boolean message_status = false;
+		String message_desc = null;
+		String message_code = null;
+		String message_dev = null;
+		Map<Object, Object> object_map = new HashMap<Object, Object>();
+
+		if (!BaseUtility.isListNull(semesterIdList) && BaseUtility.isNotBlank(studentMatricNum)) {
+			List<StudentSemesterResponse> studentSemesterResponses = commonService.insertStudentSemesters(semesterIdList, studentMatricNum);
+			
+			if (!BaseUtility.isListNull(studentSemesterResponses)) {
+				message_status = true;
+				message_desc = "SUCCESS";
+				
+				object_map.put("studentSemesters", studentSemesterResponses);
 			} else {
 				error_desc = "FAIL";
 			}
