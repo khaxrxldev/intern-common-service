@@ -434,6 +434,17 @@ public class CommonServiceImpl implements CommonService {
 	public SemesterResponse insertSemester(SemesterRequest semesterRequest) throws Exception {
 		SemesterResponse semesterResponse = new SemesterResponse();
 		SemesterEntity newSemesterEntity = new SemesterEntity();
+		List<SemesterEntity> existingSemesterEntities = new ArrayList<SemesterEntity>();
+		
+		existingSemesterEntities = semesterRepository.findBySemesterPartAndSemesterStartEvaluateDateAndSemesterEndEvaluateDate(semesterRequest.getSemesterPart(), DateUtility.asTimeStamp(semesterRequest.getSemesterStartEvaluateDate()), DateUtility.asTimeStamp(semesterRequest.getSemesterEndEvaluateDate()));
+		if (existingSemesterEntities.size() > 0) {
+			throw new Exception("Semester already exist.");
+		}
+		
+		existingSemesterEntities = semesterRepository.findBySemesterCode(semesterRequest.getSemesterCode());
+		if (existingSemesterEntities.size() > 0) {
+			throw new Exception("Semester already exist.");
+		}
 		
 		newSemesterEntity.setSemesterId(BaseUtility.generateId());
 		newSemesterEntity.setSemesterCode(semesterRequest.getSemesterCode());
